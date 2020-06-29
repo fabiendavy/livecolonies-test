@@ -11,34 +11,50 @@
   From : <%= stay.start_date.strftime('%d %B %Y') %> <br>
   To : <%= stay.end_date.strftime('%d %B %Y') %>
   </div>
+  <% if stay.tenant.discount %>
+    <div>
+      Discount : <%= stay.tenant.discount %> %
+    </div>
+  <% end %>
 
   <br>
   <div>
     Payments : 
 
-    <!-- we create an array with all the date for this stay -->
+    <%# we create an array with all the date for this stay %>
     <% dates = (stay.start_date..stay.end_date).to_a %>
-    <!-- we make a hash with the months as key and the number of day in this month as value -->
-    <!-- we also set a counter to calcul the total price -->
+    <%# we make a hash with the months as key and the number of day in this month as value %>
     <% hash_months = Hash.new(0)
-      dates.each { |date| hash_months[date.strftime('%B')] += 1 }
-      total_price = 0 %>
+      dates.each { |date| hash_months[date.strftime('%B')] += 1 } %> <!-- ex: {January: 25, February: 6} -->
     
     <% hash_months.keys.each_with_index do |month, index| %>
       <div class="m-4">
         <p>
           n° <%= index+1 %> : <%= month %> - 
-          <!-- if the current month has less days, than the maximum number of day in this month, we calcul the appropriate amount -->
-          <% if hash_months[month] < Stay::DAYS_IN_MONTHS[month.to_sym] %>
-            <%= (hash_months[month] * stay.studio.monthly_price.fdiv(Stay::DAYS_IN_MONTHS[month.to_sym])).round %> €
-            <% total_price += (hash_months[month] * stay.studio.monthly_price.fdiv(Stay::DAYS_IN_MONTHS[month.to_sym])).round %>
-          <!-- otherwise we get the normal price of the studio for a month -->
+          <%# we check if the tenant has available discount %>
+          <% if stay.tenant.discount %>
+            <%# if yes, we make a hash which count the number of day discounted %>
+            <% discount_hash = Hash.new(0) 
+            (stay.tenant.start_date_discount..stay.tenant.end_date_discount).to_a.each { |date| discount_hash[date.strftime('%B')] += 1 } %> <!-- ex: {January: 12} -->
+
+            <%# we check if the discounted months include the current one, if yes, we calcul the new price %>
+            <% if discount_hash.include?(month) %>
+
+              <% price = ((hash_months[month] - discount_hash[month]) * stay.studio.monthly_price.fdiv(Stay::DAYS_IN_MONTHS[month.to_sym])) %>
+              <% final_price = price + (discount_hash[month] * stay.studio.monthly_price.fdiv(Stay::DAYS_IN_MONTHS[month.to_sym])) * (1 - stay.tenant.discount.fdiv(100)) %>
+              <%= final_price.round %> € (<%= discount_hash[month] %> days discounted)
+
+            <%# in case the current month isn't in the discouned months, we render the partial which calcul the normal price %>
+            <% else %>
+              <%= render partial: 'stays/days_in_month', locals: { stay: stay, hash_months: hash_months, month: month } %>
+            <% end %>
+          
+          <%# in case the tenant doesn't have an available discount, we render the partial which calcul the normal price %>
           <% else %>
-            <%= stay.studio.monthly_price %> €
-            <% total_price += stay.studio.monthly_price %>
+            <%= render partial: 'stays/days_in_month', locals: { stay: stay, hash_months: hash_months, month: month } %>
           <% end %>
+        </p>
       </div>
     <% end %>
-    Total price of the stay : <%= total_price %> €
   </div>
 </div>

@@ -5,8 +5,8 @@ Stay.destroy_all
 tenant_ids = []
 studio_ids = []
 
-for i in 1..10 do
-  tenant = Tenant.new(email: "example#{i}@test.com")
+10.times do
+  tenant = Tenant.new(email: "#{Faker::Name.name.gsub('.', '').split(' ').join('.').downcase}@test.com")
   tenant.save
   tenant_ids << tenant.id
 end
@@ -35,4 +35,12 @@ Tenant.all.each do |tenant|
   end
   new_stay.save
 end
-puts "10 Stays created."
+puts "10 stays created."
+
+Tenant.first(5).each do |tenant|
+  tenant.discount = [20, 25, 30, 35, 40].sample
+  tenant.start_date_discount = tenant.stays.first.start_date
+  tenant.end_date_discount = tenant.start_date_discount + rand(20..40)
+  tenant.save
+end
+puts "5 first tenant's discount created."

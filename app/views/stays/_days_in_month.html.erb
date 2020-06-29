@@ -1,0 +1,7 @@
+<%# if the current month has less days, than the maximum number of day in this month, we calcul the appropriate amount %>
+<% if hash_months[month] < Stay::DAYS_IN_MONTHS[month.to_sym] %>
+  <%= (hash_months[month] * stay.studio.monthly_price.fdiv(Stay::DAYS_IN_MONTHS[month.to_sym])).round %> €
+<%# otherwise we get the normal price of the studio for a month %>
+<% else %>
+  <%= stay.studio.monthly_price %> €
+<% end %>
