@@ -1,10 +1,3 @@
-# This file should contain all the record creation needed to seed the database with its default values.
-# The data can then be loaded with the rails db:seed command (or created alongside the database with db:setup).
-#
-# Examples:
-#
-#   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
-#   Character.create(name: 'Luke', movie: movies.first)
 Tenant.destroy_all
 Studio.destroy_all
 Stay.destroy_all
@@ -26,10 +19,11 @@ puts "10 tenants created."
 end
 puts "5 studios created."
 
+date = Date.new(2020, 1, 15)
 Tenant.all.each do |tenant|
   new_stay = Stay.new(
-    start_date: Date.today,
-    end_date: Date.today.next_month(rand(1..5)),
+    start_date: date,
+    end_date: date.next_month(rand(1..5)),
     tenant_id: tenant.id,
     studio_id: studio_ids.sample
   )

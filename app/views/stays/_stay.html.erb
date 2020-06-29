@@ -1,0 +1,44 @@
+<div class="p-3 my-3 card">
+  <div>
+    Tenant :
+    <%= stay.tenant.email %> <br>
+  </div>
+  <div>
+    Studio :
+    <%= stay.studio.name %> - <%= stay.studio.monthly_price %> € / month
+  </div>
+  <div>
+  From : <%= stay.start_date.strftime('%d %B %Y') %> <br>
+  To : <%= stay.end_date.strftime('%d %B %Y') %>
+  </div>
+
+  <br>
+  <div>
+    Payments : 
+
+    <!-- we create an array with all the date for this stay -->
+    <% dates = (stay.start_date..stay.end_date).to_a %>
+    <!-- we make a hash with the months as key and the number of day in this month as value -->
+    <!-- we also set a counter to calcul the total price -->
+    <% hash_months = Hash.new(0)
+      dates.each { |date| hash_months[date.strftime('%B')] += 1 }
+      total_price = 0 %>
+    
+    <% hash_months.keys.each_with_index do |month, index| %>
+      <div class="m-4">
+        <p>
+          n° <%= index+1 %> : <%= month %> - 
+          <!-- if the current month has less days, than the maximum number of day in this month, we calcul the appropriate amount -->
+          <% if hash_months[month] < Stay::DAYS_IN_MONTHS[month.to_sym] %>
+            <%= (hash_months[month] * stay.studio.monthly_price.fdiv(Stay::DAYS_IN_MONTHS[month.to_sym])).round %> €
+            <% total_price += (hash_months[month] * stay.studio.monthly_price.fdiv(Stay::DAYS_IN_MONTHS[month.to_sym])).round %>
+          <!-- otherwise we get the normal price of the studio for a month -->
+          <% else %>
+            <%= stay.studio.monthly_price %> €
+            <% total_price += stay.studio.monthly_price %>
+          <% end %>
+      </div>
+    <% end %>
+    Total price of the stay : <%= total_price %> €
+  </div>
+</div>
